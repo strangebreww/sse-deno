@@ -1,22 +1,14 @@
-import { readableStreamFromReader as toStream } from "https://deno.land/std@0.119.0/streams/conversion.ts";
+import { Application } from "https://deno.land/x/oak@v10.1.0/mod.ts";
+import { readableStreamFromReader } from "https://deno.land/std@0.119.0/streams/conversion.ts";
 
-const server = Deno.listen({ port: 8080 });
+const app = new Application();
+
+app.use(async ctx => {
+    const fileStream = readableStreamFromReader(await Deno.open("index.html"));
+
+    ctx.response.headers.set('Content-Type', 'text/html');
+    ctx.response.body = fileStream;
+});
+
 console.log("Server started on port 8080");
-
-for await (const conn of server) {
-    serveHttp(conn);
-}
-
-async function serveHttp(conn: Deno.Conn) {
-    const httpConn = Deno.serveHttp(conn);
-
-    for await (const requestEvent of httpConn) {
-        const fileStream = toStream(await Deno.open("index.html"));
-
-        requestEvent.respondWith(
-            new Response(fileStream, {
-                status: 200,
-            })
-        );
-    }
-}
+await app.listen({ port: 8080 });
