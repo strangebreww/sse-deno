@@ -6,5 +6,20 @@
 </head>
 <body>
 	<h1>SSE</h1>
+	<div id="data"></div>
+	<script>
+		const eventSource = new EventSource("http://localhost:8080/stream");
+		const dataElem = document.getElementById("data");
+
+		eventSource.onmessage = (message) => {
+			console.log('message', message);
+
+			dataElem.innerText = `id: ${message.lastEventId} data: ${message.data}`;
+		}
+
+		eventSource.addEventListener("end-of-stream", () => {
+			eventSource.close();
+		})
+	</script>
 </body>
 </html>
